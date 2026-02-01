@@ -19,16 +19,20 @@ jobs:
         run: |
           brew install autoconf automake libtool pkg-config
           python -m pip install --upgrade pip
-          # Added packaging and sh to prevent the ModuleNotFoundError
+          # Explicitly installing all potential missing toolchain parts
           pip install "cython<3.0.0" buildozer kivy-ios packaging sh
 
       - name: Build with Buildozer
         run: |
+          # Clean old failed attempts first
+          buildozer ios clean
+          # Run with verbose logging level 2 to catch the hidden error
           buildozer -v ios debug
         env:
           BUILDOZER_WARN_ON_ROOT: 1
 
       - name: Upload Xcode Project
+        if: always() # Upload even if it fails so we can see the files
         uses: actions/upload-artifact@v4
         with:
           name: ios-xcode-project
