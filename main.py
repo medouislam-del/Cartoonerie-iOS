@@ -1,25 +1,37 @@
 import sqlite3
 import re
+import os
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.label import Label
 from kivy.properties import StringProperty
 from kivy.core.window import Window
+from kivy.utils import platform
 
-# FIX: Keyboard behavior for Android
+# FIX: Keyboard behavior for mobile
 Window.softinput_mode = 'below_target'
 
-DB_NAME = "products.db"
+class ProductApp(App):
+    def build(self):
+        # Determine the database path based on the platform
+        # On iOS/Android, we use the protected user_data_dir
+        if platform in ('ios', 'android'):
+            self.db_path = os.path.join(self.user_data_dir, "products.db")
+        else:
+            self.db_path = "products.db"
+            
+        self.init_db()
+        return Builder.load_string(KV)
 
-def init_db():
-    """Initialise la base de données au démarrage."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS products 
-                 (code TEXT PRIMARY KEY, name TEXT, format TEXT)''')
-    conn.commit()
-    conn.close()
+    def init_db(self):
+        """Initialise la base de données dans un emplacement accessible en écriture."""
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS products 
+                     (code TEXT PRIMARY KEY, name TEXT, format TEXT)''')
+        conn.commit()
+        conn.close()
 
 class SearchScreen(Screen):
     search_mode = StringProperty('code')
@@ -31,7 +43,8 @@ class SearchScreen(Screen):
             self.result_text = "[color=ff3333]Veuillez entrer un terme.[/color]"
             return
 
-        conn = sqlite3.connect(DB_NAME)
+        app = App.get_running_app()
+        conn = sqlite3.connect(app.db_path)
         c = conn.cursor()
         rows = []
 
@@ -68,7 +81,8 @@ class ProductListScreen(Screen):
 
     def update_product_list(self):
         self.ids.product_list.clear_widgets()
-        conn = sqlite3.connect(DB_NAME)
+        app = App.get_running_app()
+        conn = sqlite3.connect(app.db_path)
         c = conn.cursor()
         c.execute("SELECT * FROM products ORDER BY name ASC")
         rows = c.fetchall()
@@ -85,10 +99,14 @@ class EditProductScreen(Screen):
         self.ids.input_format.text = ""
 
     def add_product(self):
-        code, name, fmt = self.ids.input_code.text.strip(), self.ids.input_name.text.strip(), self.ids.input_format.text.strip()
+        code = self.ids.input_code.text.strip()
+        name = self.ids.input_name.text.strip()
+        fmt = self.ids.input_format.text.strip()
         if not all([code, name, fmt]): return
+        
+        app = App.get_running_app()
         try:
-            conn = sqlite3.connect(DB_NAME)
+            conn = sqlite3.connect(app.db_path)
             c = conn.cursor()
             c.execute("INSERT INTO products VALUES (?, ?, ?)", (code, name, fmt))
             conn.commit()
@@ -98,9 +116,13 @@ class EditProductScreen(Screen):
             pass
 
     def update_product(self):
-        code, name, fmt = self.ids.input_code.text.strip(), self.ids.input_name.text.strip(), self.ids.input_format.text.strip()
+        code = self.ids.input_code.text.strip()
+        name = self.ids.input_name.text.strip()
+        fmt = self.ids.input_format.text.strip()
         if not code: return
-        conn = sqlite3.connect(DB_NAME)
+        
+        app = App.get_running_app()
+        conn = sqlite3.connect(app.db_path)
         c = conn.cursor()
         c.execute("UPDATE products SET name=?, format=? WHERE code=?", (name, fmt, code))
         conn.commit()
@@ -109,17 +131,14 @@ class EditProductScreen(Screen):
     def delete_product(self):
         code = self.ids.input_code.text.strip()
         if not code: return
-        conn = sqlite3.connect(DB_NAME)
+        
+        app = App.get_running_app()
+        conn = sqlite3.connect(app.db_path)
         c = conn.cursor()
         c.execute("DELETE FROM products WHERE code=?", (code,))
         conn.commit()
         conn.close()
         self.clear_inputs()
-
-class ProductApp(App):
-    def build(self):
-        init_db()
-        return Builder.load_string(KV)
 
 KV = """
 ScreenManager:
