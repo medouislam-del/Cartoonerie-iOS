@@ -357,18 +357,16 @@ android.allow_backup = True
 # iOS specific
 #
 
-# (str) Path to a custom kivy-ios folder
-#ios.kivy_ios_dir = ../kivy-ios
-# Alternately, specify the URL and branch of a git checkout:
+# (str) URL and branch for kivy-ios
 ios.kivy_ios_url = https://github.com/kivy/kivy-ios
 ios.kivy_ios_branch = master
 
-# Another platform dependency: ios-deploy
-# Uncomment to use a custom checkout
-#ios.ios_deploy_dir = ../ios_deploy
-# Or specify URL and branch
-ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
-ios.ios_deploy_branch = 13.0
+# (str) URL and branch for ios-deploy (USE THE UPDATED URL BELOW)
+ios.ios_deploy_url = https://github.com/ios-control/ios-deploy
+ios.ios_deploy_branch = master
+
+# (str) The iOS deployment target (THIS IS WHERE 13.0 GOES)
+ios.ios_deploy_target = 13.0
 
 # (bool) Whether or not to sign the code
 ios.codesign.allowed = false
