@@ -6,8 +6,8 @@ on:
 
 jobs:
   build:
-    # Use macos-13 to ensure we use a stable Xcode 15 environment
     runs-on: macos-13
+    timeout-minutes: 60  # Gives the build a full hour to finish
     steps:
       - uses: actions/checkout@v4
 
@@ -24,9 +24,7 @@ jobs:
 
       - name: Build with Buildozer
         run: |
-          # Force a fresh start
           buildozer ios clean
-          # verbose mode helps us find the exact C++ error if it fails
           buildozer -v ios debug
         env:
           BUILDOZER_WARN_ON_ROOT: 1
