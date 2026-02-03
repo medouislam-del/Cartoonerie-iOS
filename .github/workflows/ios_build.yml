@@ -23,9 +23,9 @@ jobs:
 
       - name: Build with Buildozer
         run: |
-          # Important for Xcode 16 compatibility
+          # Fix for Xcode 16 compatibility
           export MACOSX_DEPLOYMENT_TARGET=13.0
-          # Remove old failed attempts to force a fresh clone of ios-deploy
+          # Clean old failed attempts
           rm -rf .buildozer/ios/platform/ios-deploy
           buildozer -v ios debug
         env:
@@ -36,4 +36,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-xcode-project
-          path: .buildozer/ios/platform/kivy-ios/dist/hostpython3/
+          # This path captures the entire project, including the .xcodeproj
+          path: .buildozer/ios/platform/kivy-ios/
